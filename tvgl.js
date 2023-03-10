@@ -1,10 +1,10 @@
-// Get the tvg-name value from the div element
-const tvgName = document.getElementById('tvg-name').textContent.trim();
-
 // Load the m3u file
 fetch('https://raw.githubusercontent.com/free-greek-iptv/greek-iptv/master/android.m3u')
-  .then(response => response.text())
-  .then(m3uFile => {
+  .then((response) => response.text())
+  .then((m3uFile) => {
+    // Get the tvg-name value from the div element
+    const tvgName = document.getElementById('tvg-name').textContent.trim();
+    
     // Find the position of the tvg-name tag
     const tvgNamePos = m3uFile.indexOf('tvg-name="' + tvgName + '"');
 
@@ -16,15 +16,24 @@ fetch('https://raw.githubusercontent.com/free-greek-iptv/greek-iptv/master/andro
         // Find the start of the m3u8 link
         const m3u8StartPos = m3uFile.lastIndexOf('\n', m3u8Pos) + 1;
 
-        // Extract the m3u8 link and display it
-        const m3u8Link = m3uFile.substring(m3u8StartPos, m3u8Pos + 5);
-        const videoElem = document.createElement('video');
-        videoElem.src = m3u8Link;
-        videoElem.controls = true;
-        document.body.appendChild(videoElem);
-        const resultElem = document.createElement('div');
-        resultElem.innerHTML = `<strong>tvg-name=${tvgName}</strong>: ${m3u8Link}`;
-        document.body.appendChild(resultElem);
+        // Extract the m3u8 link and force HTTPS protocol
+        let m3u8Link = m3uFile.substring(m3u8StartPos, m3u8Pos + 5);
+        m3u8Link = m3u8Link.replace('http://', 'https://');
+
+        // Initialize JWPlayer with the extracted M3U8 link
+        const playerElement = document.getElementById('jwplayer');
+        const player = jwplayer(playerElement);
+        player.setup({
+          file: m3u8Link,
+          title: tvgName,
+          width: '100%',
+          aspectratio: '16:9',
+          autostart: true,
+          controls: true,
+          displaytitle: true,
+          displaydescription: false,
+          stretching: 'uniform',
+        });
       } else {
         console.log('No m3u8 link found after the specified tvg-name value in the given URL.');
       }
@@ -32,4 +41,4 @@ fetch('https://raw.githubusercontent.com/free-greek-iptv/greek-iptv/master/andro
       console.log('No tvg-name tag found with the specified value in the given URL.');
     }
   })
-  .catch(error => console.log(error));
+  .catch((error) => console.log(error));
