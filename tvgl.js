@@ -1,29 +1,36 @@
-let m3u_url = "https://raw.githubusercontent.com/free-greek-iptv/greek-iptv/master/android.m3u";
-let tvg_id = "ERT 2";
-
-fetch(m3u_url)
-  .then(response => response.text())
-  .then(m3u_file => {
-    // Find the position of the tvg-name tag
-    let tvg_id_pos = m3u_file.indexOf('tvg-name="' + tvg_id + '"');
-
-    if (tvg_id_pos !== -1) {
-      // Find the next m3u8 link after the tvg-name tag
-      let m3u8_pos = m3u_file.indexOf('.m3u8', tvg_id_pos);
-
-      if (m3u8_pos !== -1) {
-        // Find the start of the m3u8 link
-        let m3u8_start_pos = m3u_file.lastIndexOf("\n", m3u8_pos) + 1;
-
-        // Extract the m3u8 link and display it
-        let m3u8_link = m3u_file.substring(m3u8_start_pos, m3u8_pos + 5);
-        document.write("<video src='" + m3u8_link + "' controls></video><br>");
-        document.write("<strong>tvg-id=" + tvg_id + "</strong>: " + m3u8_link);
+if (new URLSearchParams(window.location.search).has('tvg_name')) {
+  const m3uUrl = 'https://raw.githubusercontent.com/free-greek-iptv/greek-iptv/master/android.m3u';
+  const tvgName = new URLSearchParams(window.location.search).get('tvg_name');
+  
+  fetch(m3uUrl)
+    .then(response => response.text())
+    .then(m3uFile => {
+      // Find the position of the tvg-name tag
+      const tvgNamePos = m3uFile.indexOf('tvg-name="' + tvgName + '"');
+      
+      if (tvgNamePos !== -1) {
+        // Find the next m3u8 link after the tvg-name tag
+        const m3u8Pos = m3uFile.indexOf('.m3u8', tvgNamePos);
+        
+        if (m3u8Pos !== -1) {
+          // Find the start of the m3u8 link
+          const m3u8StartPos = m3uFile.lastIndexOf('\n', m3u8Pos) + 1;
+          
+          // Extract the m3u8 link and display it
+          const m3u8Link = m3uFile.substring(m3u8StartPos, m3u8Pos + 5);
+          const videoElem = document.createElement('video');
+          videoElem.src = m3u8Link;
+          videoElem.controls = true;
+          document.body.appendChild(videoElem);
+          const resultElem = document.createElement('div');
+          resultElem.innerHTML = `<strong>tvg-name=${tvgName}</strong>: ${m3u8Link}`;
+          document.body.appendChild(resultElem);
+        } else {
+          console.log('No m3u8 link found after the specified tvg-name value in the given URL.');
+        }
       } else {
-        document.write("No m3u8 link found after the specified tvg-id value in the given URL.");
+        console.log('No tvg-name tag found with the specified value in the given URL.');
       }
-    } else {
-      document.write("No tvg-id tag found with the specified value in the given URL.");
-    }
-  })
-  .catch(error => console.log(error));
+    })
+    .catch(error => console.log(error));
+}
